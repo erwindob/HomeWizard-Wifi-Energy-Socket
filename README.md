@@ -19,6 +19,8 @@ The plugin creates several devices depending on the values that are read from yo
  1. An energy meter that shows your current power usage and total power usage
  2. A switch to turn the socket on/off
  3. A Wi-Fi signal strength meter that shows the current signal strength from the Wi-Fi Energy Socket
+ 4. An energy meter that shows your current power usage and total power usage (export only)
+ 5. An energy meter that shows your current power usage and total power usage (import only)
 
 ## Configuration
 
