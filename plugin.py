@@ -2,7 +2,8 @@
 ##
 ##           Author:         Eraser
 ##           Version:        1.0.0
-##           Last modified:  28-05-2023
+##           Last modified:  08-04-2025
+##           by:             erwindob, import/export separate counters, 5 sec. minimum interval
 ##
 """
 <plugin key="HomeWizardEnergySocket" name="HomeWizard Wi-Fi Energy Socket" author="Eraser" version="1.0.0" externallink="https://www.homewizard.com/energy-socket/">
@@ -14,25 +15,25 @@
         <param field="Port" label="Port" width="200px" required="true" default="80" />
         <param field="Mode1" label="Data interval" width="200px">
             <options>
+                <option label="5 seconds" value="5"/>
                 <option label="10 seconds" value="10"/>
                 <option label="20 seconds" value="20"/>
                 <option label="30 seconds" value="30"/>
                 <option label="1 minute" value="60" default="true"/>
                 <option label="2 minutes" value="120"/>
                 <option label="3 minutes" value="180"/>
-                <option label="4 minutes" value="240"/>
                 <option label="5 minutes" value="300"/>
             </options>
         </param>
         <param field="Mode2" label="State interval" width="200px">
             <options>
+                <option label="5 seconds" value="5"/>
                 <option label="10 seconds" value="10"/>
                 <option label="20 seconds" value="20"/>
                 <option label="30 seconds" value="30"/>
                 <option label="1 minute" value="60" default="true"/>
                 <option label="2 minutes" value="120"/>
                 <option label="3 minutes" value="180"/>
-                <option label="4 minutes" value="240"/>
                 <option label="5 minutes" value="300"/>
             </options>
         </param>
@@ -53,7 +54,7 @@ import urllib.request
 
 class BasePlugin:
     #Plugin variables
-    pluginInterval = 10     #in seconds
+    pluginInterval = 5     #in seconds
     dataInterval = 60       #in seconds
     stateInterval = 60      #in seconds
     dataIntervalCount = 0
@@ -74,6 +75,8 @@ class BasePlugin:
     
     #Device ID's
     active_power_id = 101
+    import_active_power_id = 102
+    export_active_power_id = 103
     switch_id = 130
     wifi_signal_id = 140
     
@@ -82,15 +85,15 @@ class BasePlugin:
             Domoticz.Debugging(1)
             DumpConfigToLog()
         
-        # If data interval between 10 sec. and 5 min.
-        if 10 <= int(Parameters["Mode1"]) <= 300:
+        # If data interval between 5 sec. and 5 min.
+        if 5 <= int(Parameters["Mode1"]) <= 300:
             self.dataInterval = int(Parameters["Mode1"])
         else:
             # If not, set to 60 sec.
             self.dataInterval = 60
             
-        # If data interval between 10 sec. and 5 min.
-        if 10 <= int(Parameters["Mode2"]) <= 300:
+        # If data interval between 5 sec. and 5 min.
+        if 5 <= int(Parameters["Mode2"]) <= 300:
             self.stateInterval = int(Parameters["Mode2"])
         else:
             # If not, set to 60 sec.
@@ -141,7 +144,20 @@ class BasePlugin:
                     UpdateDevice(self.active_power_id, 0, numStr(self.active_power_w) + ";" + numStr(self.total_power), True)
                 except:
                     Domoticz.Error("Failed to update device id " + str(self.active_power_id))
-                    
+                try:
+                    if ( self.import_active_power_id not in Devices ):
+                        Domoticz.Device(Name="Import Power usage",  Unit=self.import_active_power_id, Type=243, Subtype=29).Create()
+
+                    UpdateDevice(self.import_active_power_id, 0, numStr(self.import_active_power_w) + ";" + numStr(self.total_power_import_t1_kwh), True)
+                except:
+                    Domoticz.Error("Failed to update device id " + str(self.import_active_power_id))
+                try:
+                    if ( self.export_active_power_id not in Devices ):
+                        Domoticz.Device(Name="Export Power usage",  Unit=self.export_active_power_id, Type=243, Subtype=29).Create()
+
+                    UpdateDevice(self.export_active_power_id, 0, numStr(self.export_active_power_w) + ";" + numStr(self.total_power_export_t1_kwh), True)
+                except:
+                    Domoticz.Error("Failed to update device id " + str(self.export_active_power_id))
                 try:
                     if ( self.wifi_signal_id not in Devices ):
                         Domoticz.Device(Name="Wifi signal",  Unit=self.wifi_signal_id, TypeName="Percentage").Create()
